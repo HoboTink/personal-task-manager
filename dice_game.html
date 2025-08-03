@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Roller Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .dice-bounce { animation: bounce 0.5s; }
+        .special-glow { box-shadow: 0 0 20px #fbbf24; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+    <div class="text-center p-8">
+        <h1 class="text-4xl font-bold mb-8 text-yellow-400">🎲 Dice Roller Test 🎲</h1>
+        
+        <div class="mb-6">
+            <label class="block text-lg mb-2">Number of dice:</label>
+            <select id="diceCount" class="bg-gray-700 text-white px-4 py-2 rounded">
+                <option value="1">1 die</option>
+                <option value="2">2 dice</option>
+                <option value="3">3 dice</option>
+            </select>
+        </div>
+
+        <div id="diceContainer" class="flex justify-center gap-4 mb-8 min-h-[100px] items-center">
+            <!-- Dice will appear here -->
+        </div>
+
+        <button id="rollBtn" class="bg-blue-600 hover:bg-blue-700 px-8 py-3 text-xl font-bold rounded-lg transition-colors">
+            Roll Dice!
+        </button>
+
+        <div id="result" class="mt-6 text-2xl font-bold"></div>
+    </div>
+
+    <script>
+        const diceContainer = document.getElementById('diceContainer');
+        const result = document.getElementById('result');
+        const rollBtn = document.getElementById('rollBtn');
+        const diceCountSelect = document.getElementById('diceCount');
+
+        const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+        function rollDice() {
+            const numDice = parseInt(diceCountSelect.value);
+            const rolls = [];
+            
+            // Clear previous dice
+            diceContainer.innerHTML = '';
+            result.innerHTML = '';
+
+            // Roll and display dice
+            for (let i = 0; i < numDice; i++) {
+                const roll = Math.floor(Math.random() * 6) + 1;
+                rolls.push(roll);
+                
+                const diceDiv = document.createElement('div');
+                diceDiv.className = 'text-6xl bg-white text-black w-20 h-20 flex items-center justify-center rounded-lg dice-bounce';
+                diceDiv.textContent = diceFaces[roll - 1];
+                diceContainer.appendChild(diceDiv);
+            }
+
+            // Check for special combinations
+            setTimeout(() => {
+                checkSpecialCombinations(rolls);
+            }, 500);
+        }
+
+        function checkSpecialCombinations(rolls) {
+            const sum = rolls.reduce((a, b) => a + b, 0);
+            let message = `Total: ${sum}`;
+            let isSpecial = false;
+
+            // Check for doubles/triples
+            const counts = {};
+            rolls.forEach(roll => counts[roll] = (counts[roll] || 0) + 1);
+            const maxCount = Math.max(...Object.values(counts));
+
+            if (maxCount >= 2) {
+                if (maxCount === 2) message += " - DOUBLE! 🔥";
+                if (maxCount === 3) message += " - TRIPLE! 🌟";
+                isSpecial = true;
+            }
+
+            // Check for straight
+            if (rolls.length >= 3) {
+                const sorted = [...rolls].sort();
+                let isConsecutive = true;
+                for (let i = 1; i < sorted.length; i++) {
+                    if (sorted[i] !== sorted[i-1] + 1) {
+                        isConsecutive = false;
+                        break;
+                    }
+                }
+                if (isConsecutive) {
+                    message += " - STRAIGHT! ✨";
+                    isSpecial = true;
+                }
+            }
+
+            result.innerHTML = message;
+            result.className = isSpecial ? 'mt-6 text-2xl font-bold text-yellow-400' : 'mt-6 text-2xl font-bold';
+
+            if (isSpecial) {
+                const dice = diceContainer.querySelectorAll('div');
+                dice.forEach(die => die.classList.add('special-glow'));
+            }
+        }
+
+        rollBtn.addEventListener('click', rollDice);
+
+        // Initial roll
+        rollDice();
+    </script>
+</body>
+</html>
